@@ -1,3 +1,9 @@
+#define loop(block_name) goto block_name; \
+						 block_name##_skip: if(0) \
+						 block_name:
+
+#define break(block_name) goto block_name##_skip
+
 #include <vector>
 #include <string>
 #include <cstdlib>
@@ -40,13 +46,31 @@ class Lexer {
 				std::to_string(num)
 			};
 		};
-
 		bool isCharInteger(char c) {
 			for(int i = 0; i < digits.size(); i++) {
 				if(c == digits[i]) return true;
 			}
 			return false;
-		}
+		};
+		TokenStruct makeString(std::vector<char> string, bool isChar) {
+			std::string str;
+			for(char c : string) {
+				str += c;
+			}
+			using TT = TokenType;
+			Token t((isChar ? TT::CHR : TT::STR), str);
+			return TokenStruct {
+				&t,
+				false,
+				(isChar ? TT::CHR : TT::STR),
+				str
+			};
+		};
+		int getQuote(char c) {
+			if(c == '"') return 1;
+			if(c == '\'') return 2;
+			return 0;
+		};
 
 	public:
 		Lexer(std::string t) {
@@ -89,10 +113,66 @@ class Lexer {
 				}
 				if(hadNum) {
 					tokens.push_back(makeNumber(numbers));
+					continue;
+				} else {
+					if(getQuote(current_char) == 0) {} else {
+						bool isChar = false;
+						bool stillIn = true;
+						bool isEscaped = false;
+						std::vector<char> string;
+						if(current_char == '\'') {
+							isChar = true;
+						}
+						advance();
+
+						loop(wsi)
+						while(stillIn) {
+							if(getQuote(current_char) == 0) {
+								if(current_char == '\\') {
+									isEscaped = !isEscaped;
+								}
+								string.push_back(current_char);
+								advance();
+								continue;
+							} else {
+								if(isChar) {
+									if(getQuote(current_char) == 2) {
+										if(isEscaped == true) {
+											string.push_back(current_char);
+											isEscaped = false;
+										} else {
+											advance();
+											stillIn = false;
+											break(wsi);
+										}
+									} else {
+										string.push_back(current_char);
+									}
+								} else {
+									if(getQuote(current_char) == 1) {
+										if(isEscaped == true) {
+											string.push_back(current_char);
+											isEscaped = false;
+										} else {
+											advance();
+											stillIn = false;
+											break(wsi);
+										}
+									} else {
+										string.push_back(current_char);
+									}
+								}
+								continue;
+							}
+							tokens.push_back(makeString(string, isChar));
+							advance();
+						}
+						continue;
+					}	
 				}
 
 				// MATH TOKENS
-				else if(current_char == '=') 
+				if(current_char == '=') 
 					tokens.push_back(TokenStruct {nullptr, true, TT::EQUAL});
 				else if(current_char == '+')
 					tokens.push_back(TokenStruct {nullptr, true, TT::PLUS});

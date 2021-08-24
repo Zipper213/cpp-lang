@@ -4,9 +4,15 @@
 #include <iostream>
 
 enum TokenType {
-	INT = 0, FLOAT, EQUAL, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
+	INT = 0, FLOAT,
+	CHR, STR,
+	EQUAL, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
 };
-const char* types[] = {"INT", "FLOAT", "EQUAL", "PLUS", "MINUS", "MUL", "DIV", "LPAREN", "RPAREN"};
+const char* types[] = {
+	"INT", "FLOAT", 
+	"CHR", "STR",
+	"EQUAL", "PLUS", "MINUS", "MUL", "DIV", "LPAREN", "RPAREN"
+};
 const char* ttc(TokenType t) {
 	return types[t];
 };
