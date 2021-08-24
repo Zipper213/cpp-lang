@@ -1,39 +1,52 @@
 #include <vector>
 #include <string>
+#include <cstdlib>
+#include <cmath>
+
 #include "./Token.h"
 
 const char END_LINE = '\0';
 
+std::vector<char> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
 int charToInt(char c) {
-	if(c == '1') return 1;
-	if(c == '2') return 2;
-	if(c == '3') return 3;
-	if(c == '4') return 4;
-	if(c == '5') return 5;
-	if(c == '6') return 6;
-	if(c == '7') return 7;
-	if(c == '8') return 8;
-	if(c == '9') return 9;
-	if(c == '0') return 0;
-	return 0;
+	for(int i = 0; i < digits.size(); i++) {
+		if(c == digits[i]) return i;
+	}
+	return -1;
 };
 
 class Lexer {
 
 	private:
 		std::string text;
-		int pos = 0;
+		int pos = -1;
 		char current_char;
 
-		TokenStruct makeNumber(char num) {
+		TokenStruct makeNumber(std::vector<int> numbers) {
+			int num = 0;
+			
+			int size = numbers.size();
+			for(int i = 0; i < size; i++) {
+				num += std::pow(10, size-i-1) * numbers[i];
+			}
+
 			using TT = TokenType;
-			Token t(TT::INT, std::to_string(charToInt(num)));
+			Token t(TT::INT, std::to_string(num));
 			return TokenStruct {
 				&t,
 				false,
-				TT::INT
+				TT::INT,
+				std::to_string(num)
 			};
 		};
+
+		bool isCharInteger(char c) {
+			for(int i = 0; i < digits.size(); i++) {
+				if(c == digits[i]) return true;
+			}
+			return false;
+		}
 
 	public:
 		Lexer(std::string t) {
@@ -51,22 +64,31 @@ class Lexer {
 		std::vector<TokenStruct> makeTokens() {
 			using TT = TokenType;
 			std::vector<TokenStruct> tokens;
-			while(current_char != END_LINE) {
+			while(current_char != END_LINE && pos < text.length()) {
+				if(
+					(current_char == '\t') ||
+					(current_char == '\n') ||
+					(current_char == '\0')
+				) {
+					advance();
+					continue;
+				}
 
 				// DIGITS
-				if(
-					(current_char == '1') ||
-					(current_char == '2') ||
-					(current_char == '3') ||
-					(current_char == '4') ||
-					(current_char == '5') ||
-					(current_char == '6') ||
-					(current_char == '7') ||
-					(current_char == '8') ||
-					(current_char == '9') ||
-					(current_char == '0')
-				) {
-					tokens.push_back(makeNumber(current_char));
+				bool isInt = false;
+				bool hadNum = false;
+				if(isCharInteger(current_char)) {
+					isInt = true;
+					hadNum = true;
+				}
+				std::vector<int> numbers;
+				while(isInt && isCharInteger(current_char)) {
+					int current = std::atoi(&current_char);
+					numbers.push_back(current);
+					advance();
+				}
+				if(hadNum) {
+					tokens.push_back(makeNumber(numbers));
 				}
 
 				// MATH TOKENS

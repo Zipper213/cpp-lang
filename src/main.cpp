@@ -25,12 +25,16 @@ int main(int argc, char** args) {
 	Lexer lex(getWithSC(file));
 
 	std::vector<TokenStruct> tokens = lex.makeTokens();
+	tokens.pop_back();
 	for(TokenStruct ts : tokens) {
-		std::cout << ts.eT;
-		if(ts.tok == nullptr || ts.isInst) {
-			std::cout << "{" << ttc(ts.eT).c_str() << "}" << std::endl;
+		Token* tok = ts.tok;
+		bool isInst = ts.isInst;
+		TokenType eT = ts.eT;
+		std::string val = ts.val;
+		if(isInst) {
+			std::cout << "Instr >> {" << ttc(eT) << "}" << std::endl;
 		} else {
-			std::cout << "{" << ts.tok->str() << "}" << std::endl;
+			std::cout << "Token >> {" << ttc(eT) << ":" << val << "}" << std::endl;
 		}
 	}
 
