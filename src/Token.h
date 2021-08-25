@@ -39,6 +39,8 @@ class Token {
 };
 
 typedef struct {
+	int start;
+	int end;
 	Token* tok;
 	bool isInst;
 	TokenType eT;
