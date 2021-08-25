@@ -17,15 +17,15 @@ int main(int argc, char** args) {
 	std::string file;
 
 	if(std::string(args[1]) == "compile") {
-		file = fs::readFile(args[2]);
+		file = std::string(args[2]);
 	} else {
 		return 1;
 	}
 
-	Lexer lex(getWithSC(file));
+	Lexer lex(file);
 
 	std::vector<TokenStruct> tokens = lex.makeTokens();
-	tokens.pop_back();
+	std::cout << tokens.size();
 	for(TokenStruct ts : tokens) {
 		Token* tok = ts.tok;
 		bool isInst = ts.isInst;
