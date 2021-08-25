@@ -1,5 +1,3 @@
-#pragma once
-
 #define loop(block_name) goto block_name; \
 						 block_name##_skip: if(0) \
 						 block_name:
@@ -11,11 +9,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "./fs.h"
-#include "./special.h"
-
 #include "./Token.h"
-#include "./Error.h"
 
 const char END_LINE = '\0';
 
@@ -32,8 +26,7 @@ class Lexer {
 
 	private:
 		std::string text;
-		std::vector<std::string> lines;
-		unsigned int pos = -1;
+		int pos = -1;
 		char current_char;
 
 		TokenStruct makeNumber(std::vector<int> numbers) {
@@ -47,8 +40,6 @@ class Lexer {
 			using TT = TokenType;
 			Token t(TT::INT, std::to_string(num));
 			return TokenStruct {
-				pos,
-				pos - numbers.size(),
 				&t,
 				false,
 				TT::INT,
@@ -69,8 +60,6 @@ class Lexer {
 			using TT = TokenType;
 			Token t((isChar ? TT::CHR : TT::STR), str);
 			return TokenStruct {
-				pos - string.size(),
-				pos,
 				&t,
 				false,
 				(isChar ? TT::CHR : TT::STR),
@@ -84,17 +73,10 @@ class Lexer {
 		};
 
 	public:
-		Lexer(std::string f) {
-			text = fs::readFile(f.c_str());
-			lines = fs::getLines(f.c_str());
+		Lexer(std::string t) {
+			text = t;
 			advance();
 		};
-		bool handleError(Error* e) {
-			std::string msg = e->err();
-			if(e->type == ErrorType::CHAR) {
-				//
-			}
-		}
 		void advance() {
 			pos += 1;
 			if(pos < text.length()) {
@@ -116,8 +98,6 @@ class Lexer {
 					continue;
 				}
 
-				bool isString = false;
-
 				// DIGITS
 				bool isInt = false;
 				bool hadNum = false;
@@ -135,82 +115,75 @@ class Lexer {
 					tokens.push_back(makeNumber(numbers));
 					continue;
 				} else {
-					isString = true;
-				}
-
-				// STRINGS
-				std::vector<char> string;
-				bool isChar = false;
-				bool stillIn = true;
-				bool isEscaped = false;
-				bool pt = false;
-				int sl = 0;
-				if(getQuote(current_char) == 0) {} else {
-					if(current_char == '\'') {
-						isChar = true;
-					}
-					advance();
-
-					while(stillIn) {
-						if(getQuote(current_char) == 0) {
-							if(current_char == '\\') {
-								isEscaped = !isEscaped;
-							}
-							string.push_back(current_char);
-							sl++;
-						} else {
-							if(isChar) {
-								if(getQuote(current_char) == 2) {
-									if(isEscaped == true) {
-										string.push_back(current_char);
-										sl++;
-										isEscaped = false;
-									} else {
-										stillIn = false;
-										pt = true;
-									}
-								}
-							} else {
-								if(getQuote(current_char) == 1) {
-									if(isEscaped == true) {
-										string.push_back(current_char);
-										sl++;
-										isEscaped = false;
-									} else {
-										stillIn = false;
-										pt = true;
-									}
-								}
-							}
+					if(getQuote(current_char) == 0) {} else {
+						bool isChar = false;
+						bool stillIn = true;
+						bool isEscaped = false;
+						std::vector<char> string;
+						if(current_char == '\'') {
+							isChar = true;
 						}
-						
 						advance();
-					}
-				}
 
-				if(pt) {
-					tokens.push_back(makeString(string, isChar));
-					if(sl > 1 && isChar) {
-						Error e("Char exceeds one-character maximum.");
-						bool shouldClose = handleError(&e);
-						if(shouldClose) break;
-					}
-					continue;
+						loop(wsi)
+						while(stillIn) {
+							if(getQuote(current_char) == 0) {
+								if(current_char == '\\') {
+									isEscaped = !isEscaped;
+								}
+								string.push_back(current_char);
+								advance();
+								continue;
+							} else {
+								if(isChar) {
+									if(getQuote(current_char) == 2) {
+										if(isEscaped == true) {
+											string.push_back(current_char);
+											isEscaped = false;
+										} else {
+											advance();
+											stillIn = false;
+											break(wsi);
+										}
+									} else {
+										string.push_back(current_char);
+									}
+								} else {
+									if(getQuote(current_char) == 1) {
+										if(isEscaped == true) {
+											string.push_back(current_char);
+											isEscaped = false;
+										} else {
+											advance();
+											stillIn = false;
+											break(wsi);
+										}
+									} else {
+										string.push_back(current_char);
+									}
+								}
+								continue;
+							}
+							tokens.push_back(makeString(string, isChar));
+							advance();
+						}
+						continue;
+					}	
 				}
 
 				// MATH TOKENS
 				if(current_char == '=') 
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::EQUAL});
+					tokens.push_back(TokenStruct {nullptr, true, TT::EQUAL});
 				else if(current_char == '+')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::PLUS});
+					tokens.push_back(TokenStruct {nullptr, true, TT::PLUS});
 				else if(current_char == '-') 
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MINUS});
+					tokens.push_back(TokenStruct {nullptr, true, TT::MINUS});
 				else if(current_char == '*')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MUL});
+					tokens.push_back(TokenStruct {nullptr, true, TT::MUL});
 				else if(current_char == '/')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::DIV});
+					tokens.push_back(TokenStruct {nullptr, true, TT::DIV});
 				else if(current_char == '(')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::LPAREN});
+					tokens.push_back(TokenStruct {nullptr, true, TT::LPAREN});
 				advance();
 			}
 			return tokens;
