@@ -1,3 +1,5 @@
+#pragma once
+
 #include "./loader.h"
 
 void printWithSC(std::string str, bool nl = true) {
