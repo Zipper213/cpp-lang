@@ -6,11 +6,15 @@
 enum TokenType {
 	INT = 0, FLOAT,
 	CHR, STR,
+	ID,
+	VAR,  
 	EQUAL, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN
 };
 const char* types[] = {
 	"INT", "FLOAT", 
 	"CHR", "STR",
+	"ID", 
+	"VAR", 
 	"EQUAL", "PLUS", "MINUS", "MUL", "DIV", "LPAREN", "RPAREN"
 };
 const char* ttc(TokenType t) {

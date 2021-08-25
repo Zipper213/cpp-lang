@@ -1,0 +1,37 @@
+types = {
+    int: ([-+]?)[0-9]+
+    float: ([-+]?)[0-9.]+[fF]
+    number: {int, float}
+
+    string = ".+"
+    cstring = '.'
+    text: {string, cstring}
+
+    identifier = [A-Za-z_$]+
+
+    varType = {number, text, identifier}
+},
+
+grammar = {
+    add = {
+        $1, space?, +, space?, $2
+    } (number, number),
+    sub = {
+        $1, space?, -, space?, $2
+    } (number, number),
+    mul = {
+        $1, space?, /, space/, $2
+    } (number, number), 
+    div = {
+        $1, space?, /, space?, $2
+    } (number, number),
+
+    cat = {
+        $1, space?, &, space?, $2
+    } (text, text) : cstr & cstr -> str,
+
+    var = {
+        var, space, $1, space?, =, space?=, $2
+    } (identifier, varType),
+
+}

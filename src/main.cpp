@@ -25,7 +25,7 @@ int main(int argc, char** args) {
 	Lexer lex(file);
 
 	std::vector<TokenStruct> tokens = lex.makeTokens();
-	std::cout << tokens.size();
+	std::cout << tokens.size() << " tokens." << std::endl;
 	for(TokenStruct ts : tokens) {
 		Token* tok = ts.tok;
 		bool isInst = ts.isInst;

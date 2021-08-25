@@ -17,6 +17,11 @@
 #include "./Token.h"
 #include "./Error.h"
 
+typedef struct {
+	std::string id;
+	unsigned int p;
+} Identifier;
+
 const char END_LINE = '\0';
 
 std::vector<char> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -47,8 +52,8 @@ class Lexer {
 			using TT = TokenType;
 			Token t(TT::INT, std::to_string(num));
 			return TokenStruct {
-				pos,
 				pos - numbers.size(),
+				pos,
 				&t,
 				false,
 				TT::INT,
@@ -81,6 +86,39 @@ class Lexer {
 			if(c == '"') return 1;
 			if(c == '\'') return 2;
 			return 0;
+		};
+
+		Identifier getId(std::vector<char> id) {
+			std::string identifier;
+			for(char c : id) {
+				identifier += c;
+			}
+			return {identifier, pos};
+		};
+		TokenStruct makeId(Identifier identifier) {
+			using TT = TokenType;
+			Token t(TT::ID, identifier.id);
+			return {
+				identifier.p - identifier.id.length(),
+				identifier.p,
+				&t,
+				false,
+				TT::ID,
+				identifier.id
+			};
+		};
+
+		TokenStruct makeVar(Identifier id) {
+			using TT = TokenType;
+			Token t(TT::VAR, id.id);
+			return {
+				id.p - id.id.length(),
+				id.p,
+				&t,
+				false,
+				TT::VAR,
+				id.id
+			};
 		};
 
 	public:
@@ -145,7 +183,7 @@ class Lexer {
 				bool isEscaped = false;
 				bool pt = false;
 				int sl = 0;
-				if(getQuote(current_char) == 0) {} else {
+				if(getQuote(current_char) != 0) {
 					if(current_char == '\'') {
 						isChar = true;
 					}
@@ -155,6 +193,10 @@ class Lexer {
 						if(getQuote(current_char) == 0) {
 							if(current_char == '\\') {
 								isEscaped = !isEscaped;
+							}
+							if(current_char == END_LINE) {
+								std::cout << "Never Ending Quote" << std::endl;
+								break;
 							}
 							string.push_back(current_char);
 							sl++;
@@ -186,6 +228,45 @@ class Lexer {
 						
 						advance();
 					}
+				} else {
+					if(current_char == '=')  {
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::EQUAL});
+					} else if(current_char == '+') {
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::PLUS});
+					} else if(current_char == '-') { 
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MINUS});
+					} else if(current_char == '*') {
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MUL});
+					} else if(current_char == '/') {
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::DIV});
+					} else if(current_char == '(') {
+						tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::LPAREN});
+					} else if(current_char == ' ') {
+						// Space 	
+					} else {
+						// IDENTIFIER
+						if(current_char != '\0') {
+							std::vector<char> chars;
+							while(
+								(getQuote(current_char) == 0) &&
+								(current_char != '\t') &&
+								(current_char != '\n') &&
+								(current_char != '\0') && 
+								(current_char != '\r') &&
+								(current_char != ' ') 
+							) {
+								chars.push_back(current_char);
+								advance();
+							}
+							Identifier id = getId(chars);
+							if(id.id == "var") {
+								tokens.push_back(makeVar(id));
+							} else {
+								tokens.push_back(makeId(id));
+							}
+						} else 
+							std::cout << "Unknown Identifier >> " << current_char << std::endl;
+					}
 				}
 
 				if(pt) {
@@ -199,18 +280,6 @@ class Lexer {
 				}
 
 				// MATH TOKENS
-				if(current_char == '=') 
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::EQUAL});
-				else if(current_char == '+')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::PLUS});
-				else if(current_char == '-') 
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MINUS});
-				else if(current_char == '*')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::MUL});
-				else if(current_char == '/')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::DIV});
-				else if(current_char == '(')
-					tokens.push_back(TokenStruct {pos-1, pos, nullptr, true, TT::LPAREN});
 				advance();
 			}
 			return tokens;
