@@ -4,7 +4,9 @@
 #include "./special.h"
 
 #include "./Token.h"
+
 #include "./Lexer.h"
+#include "./Grammar.h"
 
 // pl compile fname.ext
 int main(int argc, char** args) {
@@ -23,9 +25,15 @@ int main(int argc, char** args) {
 	}
 
 	Lexer lex(file);
+	
 
 	std::vector<TokenStruct> tokens = lex.makeTokens();
 	std::cout << tokens.size() << " tokens." << std::endl;
+
+	Grammar gram(&tokens);
+	gram.prepare("../grammar.txt");
+	gram.parse();
+
 	for(TokenStruct ts : tokens) {
 		Token* tok = ts.tok;
 		bool isInst = ts.isInst;
