@@ -31,7 +31,7 @@ int main(int argc, char** args) {
 	std::cout << tokens.size() << " tokens." << std::endl;
 
 	Grammar gram(&tokens);
-	gram.prepare("../grammar.txt");
+	gram.prepare("grammar.txt");
 	gram.parse();
 
 	for(TokenStruct ts : tokens) {
