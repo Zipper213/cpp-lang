@@ -11,27 +11,28 @@
 // pl compile fname.ext
 int main(int argc, char** args) {
 
-	if(argc < 3) {
-		std::cout << "Invalid Argument Amount [exec] [cmd] (fname)" << std::endl;
+	if(argc < 4) {
+		std::cout << "Invalid Argument Amount [exec] [cmd] (fname) (grammar fname)" << std::endl;
 		return 1;
 	}
 
 	std::string file;
+	std::string gFile;
 
 	if(std::string(args[1]) == "compile") {
 		file = std::string(args[2]);
+		gFile = std::string(args[3]);
 	} else {
 		return 1;
 	}
 
 	Lexer lex(file);
 	
-
 	std::vector<TokenStruct> tokens = lex.makeTokens();
 	std::cout << tokens.size() << " tokens." << std::endl;
 
 	Grammar gram(&tokens);
-	gram.prepare("grammar.txt");
+	gram.prepare(fs::getLines(gFile.c_str()));
 	gram.parse();
 
 	for(TokenStruct ts : tokens) {

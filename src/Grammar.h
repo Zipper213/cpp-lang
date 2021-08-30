@@ -22,6 +22,20 @@ class Grammar {
         std::vector<std::string> gl;
 
         HashMap<std::pair<unsigned int, unsigned int>, GInfo> data;
+        /*
+            Structure
+                HashMap<
+                    Pair<unsigned int, unsigned int> - Pos<start, end>,
+                    GInfo {
+                        std::string name; -- Name of Grammar Instruction
+                        std::vector<GDyn> map; -- Token List
+                        GDyn {
+                            int num; -- Index of Token in List
+                            TokenType -- Type of Token
+                        }
+                    }
+                > - Grammar Instructions HashMap 
+        */
 
         Grammar(std::vector<TokenStruct>* t) {
             tokens = t;
@@ -29,7 +43,7 @@ class Grammar {
         ~Grammar() {
             if(tokens == nullptr) return;
             tokens->clear();
-            std::cout << "\n\nEXITED GRAMMAR PROGRAM\n\n" << std::endl;
+            std::cout << "\nEXITED GRAMMAR PROGRAM" << std::endl;
         };
 
         std::vector<TokenStruct> getTokensOnLine(std::vector<TokenStruct>* tl, int l) {
@@ -50,34 +64,20 @@ class Grammar {
             return tks;
         }
 
-        void prepare(std::string file) {
-            std::cout << file << std::endl;
+        void prepare(std::vector<std::string> gl2) {
             if(tokens == nullptr) {
                 std::cout << "Tokens is nullptr" << std::endl;
             };
-            gf = file;
-            gl = fs::getLines(file.c_str());
-            for(std::string s : gl) std::cout << s << std::endl;
+            gl = gl2;
             if(gl.size() < 1) {
                 std::cout << "File is Empty s: " << gl.size() << std::endl;
                 return;
             };
             std::cout << "Grammar File not Empty" << std::endl;
-            for(int i = 0; i < gl.size(); i++) {
-                std::cout << "GL Line " << i << std::endl;
-                std::string line = gl[i];
-                int inc = 3;
-                if(gl.size() >= i+inc) {
-                    std::string name = gl[i];
-                    std::string patt = gl[i+1];
-                    std::string clos = gl[i+2];
-                    std::cout << "Line " << i << " {" << std::endl;
-                    std::cout << '\t' << "name: " << name << std::endl;
-                    std::cout << '\t' << "patt: " << patt << std::endl;
-                    std::cout << '\t' << "clos: " << clos << std::endl;
-                    std::cout << "};" << std::endl;
-                    i += inc;
-                }
+            int i = 0;
+            for(std::string s : gl) {
+                if(s[0] == '\n') continue;
+                std::cout << s << std::endl;
             }
         };
 

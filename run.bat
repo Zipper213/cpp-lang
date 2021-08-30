@@ -1,1 +1,1 @@
-make run FILE=file.txt
+make run FILE=file.txt GRAMMAR=grammar.txt
