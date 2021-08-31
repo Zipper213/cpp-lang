@@ -13,6 +13,11 @@ const char* etts(ErrorType t) {
     return ErrorTypes[t];
 }
 
+typedef struct {
+    bool shouldExit;
+    Error* assigned;
+} ErrorResult;
+
 class Error {
 
     public:

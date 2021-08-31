@@ -15,7 +15,7 @@
 #include "./special.h"
 
 #include "./Token.h"
-#include "./Error.h"
+#include "./ErrorHandler.h"
 
 typedef struct {
 	std::string id;
@@ -40,6 +40,8 @@ class Lexer {
 		std::vector<std::string> lines;
 		unsigned int pos = -1;
 		char current_char;
+
+		ErrorHandler handler;
 
 		TokenStruct makeNumber(std::vector<int> numbers) {
 			int num = 0;
@@ -127,11 +129,13 @@ class Lexer {
 			lines = fs::getLines(f.c_str());
 			advance();
 		};
-		bool handleError(Error* e) {
+		bool handleError(std::string message, TokenType type, int sP, int eP) {
 			std::string msg = e->err();
 			if(e->type == ErrorType::CHAR) {
-				//
+				error()
 			}
+			error(message, type, sP, eP);
+			return
 		}
 		void advance() {
 			pos += 1;

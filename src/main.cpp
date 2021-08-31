@@ -46,7 +46,5 @@ int main(int argc, char** args) {
 			std::cout << "Token >> {" << ttc(eT) << ":" << val << "}" << std::endl;
 		}
 	}
-
 	return 0;
-
-}
+};
